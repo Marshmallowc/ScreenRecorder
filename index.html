@@ -1,0 +1,385 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>极简在线录屏工具 - 浏览器免安装录屏 - Adilia</title>
+  <meta name="description" content="一个基于浏览器沙箱的免安装在线录屏工具，支持屏幕与麦克风本地混音录制。本地高画质导出 WebM/MP4，100% 隐私安全，不上传任何数据。">
+  <meta name="keywords" content="录屏,网页录屏,在线录屏,本地录屏,浏览器录屏,4K录屏,双声道混音,屏幕分享,隐私录屏,Adilia,Capura,Screen Recorder,Web Recorder,Offline Recorder,IndexedDB Recovery">
+  <link rel="canonical" href="https://www.cust.net.cn/tools/screen-recorder">
+  
+  <!-- Open Graph / Facebook SEO -->
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="https://www.cust.net.cn/tools/screen-recorder">
+  <meta property="og:title" content="极简在线录屏工具 - 浏览器免安装录屏 - Adilia">
+  <meta property="og:description" content="一个基于浏览器沙箱的免安装在线网页录屏工具，支持屏幕与麦克风本地混音录制，高保真画质导出，100% 隐私安全。">
+  <meta property="og:image" content="https://www.cust.net.cn/tools/screen-recorder/capura_hud_mockup.png">
+
+  <!-- Twitter SEO -->
+  <meta property="twitter:card" content="summary_large_image">
+  <meta property="twitter:url" content="https://www.cust.net.cn/tools/screen-recorder">
+  <meta property="twitter:title" content="极简在线录屏工具 - 浏览器免安装录屏 - Adilia">
+  <meta property="twitter:description" content="一个基于浏览器沙箱的免安装在线网页录屏工具，支持屏幕与麦克风本地混音录制，高保真画质导出，100% 隐私安全。">
+  <meta property="twitter:image" content="https://www.cust.net.cn/tools/screen-recorder/capura_hud_mockup.png">
+
+  <!-- Structured Data (JSON-LD) -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "WebApplication",
+    "name": "Adilia Screen Recorder",
+    "alternateName": "Capura Screen Recorder",
+    "url": "https://www.cust.net.cn/tools/screen-recorder",
+    "description": "Adilia Screen Recorder is an elegant, premium, fully client-side browser screen recorder with zero-latency dual mixing and IndexedDB real-time segment-saving, keeping your recordings 100% secure and offline.",
+    "applicationCategory": "MultimediaApplication",
+    "operatingSystem": "Windows, macOS, Linux, ChromeOS",
+    "browserRequirements": "Requires HTML5, Web Audio API, Screen Capture API",
+    "features": "4K Ultra HD recording, offline local audio dual-mixing, disaster recovery crash segment-saving, fully serverless",
+    "offers": {
+      "@type": "Offer",
+      "price": "0",
+      "priceCurrency": "USD"
+    }
+  }
+  </script>
+
+  <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+
+  <!-- 1. PREMIUM STICKY HEADER -->
+  <header>
+    <h1 class="logo" onclick="window.scrollTo({top: 0, behavior: 'smooth'})">
+      <span data-capura-icon="screen"></span>
+      Capura <span class="logo-sub" data-i18n="logoSub">Studio</span>
+    </h1>
+
+    <div class="header-actions">
+      <!-- About Project Button -->
+      <button id="btn-about" class="header-action-btn" title="关于项目 / About">
+        <span data-capura-icon="info"></span>
+        <span data-i18n="aboutBtnLabel">关于</span>
+      </button>
+
+      <!-- Language Switcher Dropdown Container -->
+      <div class="lang-dropdown-wrapper" id="lang-dropdown-wrapper">
+        <button id="btn-lang-toggle" class="header-action-btn" title="切换语言 / Switch Language">
+          <span data-capura-icon="globe"></span>
+          <span id="lang-btn-text" data-i18n="langBtnLabel">语言</span>
+          <span class="dropdown-chevron">▼</span>
+        </button>
+        <div id="lang-dropdown-menu" class="lang-dropdown-menu glass-card">
+          <div class="lang-dropdown-item active" data-lang="zh">中文 (简体)</div>
+          <div class="lang-dropdown-item" data-lang="en">English</div>
+        </div>
+      </div>
+
+      <!-- Theme Switcher -->
+      <button id="btn-theme-toggle" class="header-action-btn" title="切换主题 / Switch Theme">
+        <span data-capura-icon="sun"></span>
+        <span data-i18n="themeBtnLabel">切换主题</span>
+      </button>
+    </div>
+  </header>
+
+  <!-- 2. DISASTER RECOVERY CRASH BANNER (Neatly embedded) -->
+  <div id="crash-banner" class="crash-banner">
+    <div class="crash-card glass-card">
+      <div class="crash-content">
+        <div class="crash-icon">
+          <span data-capura-icon="warning"></span>
+        </div>
+        <div class="crash-info">
+          <span class="crash-headline" data-i18n="recoveryBannerHeadline">意外中断恢复提醒</span>
+          <span id="crash-desc" class="crash-desc" data-i18n="recoveryBannerDesc">系统检测到您上次由于意外关闭或崩溃而中断的录像，已为您恢复。</span>
+        </div>
+      </div>
+      <div class="crash-actions">
+        <button id="btn-recover" class="btn btn-primary btn-sm">
+          <span data-capura-icon="refresh"></span> <span data-i18n="recoveryBannerBtnRecover">一键找回视频</span>
+        </button>
+        <button id="btn-discard-recovery" class="btn btn-secondary btn-sm">
+          <span data-capura-icon="trash"></span> <span data-i18n="recoveryBannerBtnDiscard">忽略</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 3. IMMERSIVE MAIN WORKSPACE (Infinity Cinema Screen) -->
+  <main id="workspace" class="workspace-container">
+
+    <!-- Large Cinema Viewport Stage (Takes 100% width) -->
+    <section class="main-stage">
+      <div class="viewport-stage glass-card">
+        <div class="stage-grid-overlay"></div>
+        <div class="stage-scanlines"></div>
+
+        <!-- Live screen stream element (blurred backdrop for high-end cinematic feel) -->
+        <video id="viewport-video-blur" class="viewport-video-blur" autoplay playsinline muted></video>
+
+        <!-- Live screen stream element -->
+        <video id="viewport-video" class="viewport-video" autoplay playsinline></video>
+
+        <!-- Status indicator dot widget -->
+        <div class="stage-indicator">
+          <div class="dot"></div>
+          <span id="stage-indicator-text">已断开</span>
+        </div>
+
+        <!-- Immersive Radar HUD Target (Center Placeholder + Action Trigger) -->
+        <div class="stage-placeholder" id="viewport-placeholder-hud">
+          <div class="hud-radar-wrapper">
+            <div class="hud-circle-orbit path-1"></div>
+            <div class="hud-circle-orbit path-2"></div>
+            <div class="hud-circle-orbit path-3"></div>
+            <div class="hud-center-node">
+              <span data-capura-icon="screen" class="hud-icon-screen"></span>
+              <span data-capura-icon="mic" class="hud-icon-mic"></span>
+              <span data-capura-icon="volume" class="hud-icon-sys"></span>
+            </div>
+          </div>
+          <h3 class="placeholder-title" data-i18n="placeholderTitle">Capura 本地录制仪</h3>
+          <p class="placeholder-subtitle" data-i18n="placeholderSubtitle">
+            纯客户端沙箱编译 · 双音轨高保真混音 · 100% 隐私安全
+          </p>
+
+          <!-- Central Interactive Trigger Button -->
+          <button id="btn-capture" class="btn btn-primary btn-hud-capture" style="margin-top: 15px;">
+            <span data-capura-icon="screen"></span>
+            <span data-i18n="btnCapture">开启屏幕分享</span>
+          </button>
+        </div>
+
+        <!-- Metamorphic HUD Capsule Toolbar (Bottom Overlay) -->
+        <div class="viewport-floating-bar glass-card" id="float-controls-bar">
+
+          <!-- Left side: Timer & Pause Button (Slide-In in Recording State) -->
+          <div id="float-timer-wrapper" class="float-timer-wrapper" style="display: none;">
+            <span class="record-indicator-dot"></span>
+            <span id="recording-timer">00:00</span>
+          </div>
+
+          <button id="btn-pause" class="float-btn float-pause-btn" style="display: none;" title="暂停/恢复录屏">
+            <span class="float-btn-icon"><span data-capura-icon="pause"></span></span>
+          </button>
+
+          <div id="float-timer-divider" class="float-divider" style="display: none;"></div>
+
+          <!-- Middle side: Setup configs (Visible in Sharing state, locked in Recording state) -->
+          <div class="float-setup-group" id="float-setup-group">
+            <button id="btn-float-mic" class="float-btn" title="切换麦克风录制">
+              <span class="float-btn-icon"><span data-capura-icon="mic"></span></span>
+              <span class="float-btn-label" data-i18n="btnFloatMic">麦克风</span>
+              <div class="mini-visualizer-wrap">
+                <canvas id="mini-mic-visualizer" class="mini-canvas"></canvas>
+              </div>
+            </button>
+
+            <button id="btn-float-sysaudio" class="float-btn active" title="切换系统音录制">
+              <span class="float-btn-icon"><span data-capura-icon="volume"></span></span>
+              <span class="float-btn-label" data-i18n="btnFloatSysAudio">系统音</span>
+              <div class="mini-visualizer-wrap">
+                <canvas id="mini-sys-visualizer" class="mini-canvas"></canvas>
+              </div>
+            </button>
+
+            <div class="float-divider"></div>
+
+            <!-- Dynamic Settings Popover Container -->
+            <div class="settings-popover-container">
+              <button id="btn-float-settings" class="float-btn" title="点击展开高级画质">
+                <span class="float-btn-icon"><span data-capura-icon="settings"></span></span>
+                <span class="float-btn-label" data-i18n="btnFloatSettings">参数设置</span>
+              </button>
+
+              <!-- Popover Option Card Bubble -->
+              <div id="float-settings-popover" class="float-settings-popover glass-card">
+                <div class="popover-section">
+                  <span class="popover-label" data-i18n="popoverLabel">录制视频品质</span>
+                  <div class="quality-pills">
+                    <div class="quality-pill" data-preset="ultra-4k">
+                      <span class="q-label" data-i18n="qualityUltra4k">4K 超清</span>
+                      <span class="quality-badge">2160P 60fps</span>
+                    </div>
+                    <div class="quality-pill" data-preset="high-end">
+                      <span class="q-label" data-i18n="qualityHighEnd">高清模式</span>
+                      <span class="quality-badge">1080P 60fps</span>
+                    </div>
+                    <div class="quality-pill selected" data-preset="standard">
+                      <span class="q-label" data-i18n="qualityStandard">标准模式</span>
+                      <span class="quality-badge">1080P 30fps</span>
+                    </div>
+                    <div class="quality-pill" data-preset="compact">
+                      <span class="q-label" data-i18n="qualityCompact">超长省空间</span>
+                      <span class="quality-badge">720P 30fps</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div class="float-divider"></div>
+          </div>
+
+          <!-- PiP toggle button (Always accessible) -->
+          <button id="btn-float-pip" class="float-btn" title="开启桌面置顶悬浮监控 (PiP)">
+            <span class="float-btn-icon"><span data-capura-icon="screen"></span></span>
+            <span class="float-btn-label" data-i18n="btnFloatPip">悬浮窗</span>
+          </button>
+
+          <div class="float-divider"></div>
+
+          <!-- Right side: Core active buttons -->
+          <div class="float-action-group">
+            <button id="btn-record" class="btn btn-primary btn-float-record" title="点击开始正式录屏" disabled>
+              <span class="record-indicator-dot"></span>
+              <span id="btn-record-text">开始录制</span>
+            </button>
+            <button id="btn-stop" class="btn btn-danger btn-float-stop" style="display: none;" title="结束并合并视频" disabled>
+              <span data-capura-icon="stop"></span>
+              <span data-i18n="btnStop">结束录制</span>
+            </button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- 5. COMPILE PREVIEW & EXPORT HUB -->
+  <section id="compile-station" class="compile-station">
+    <div class="compile-card glass-card">
+
+      <div class="compile-player-wrapper">
+        <video id="preview-video" controls></video>
+      </div>
+
+      <div class="compile-details">
+        <div>
+          <h2 class="compile-title-h" data-i18n="compileTitle">🎉 视频编译导出成功！</h2>
+          <p class="compile-sub-desc" data-i18n="compileDesc">
+            您的录屏已经完全在本地浏览器沙箱中合并封装。您可以在左侧播放器中预览，也可以输入自定义名称下载到本地。
+          </p>
+
+          <div class="compile-meta-list">
+            <div class="compile-meta-item">
+              <span class="compile-meta-label" data-i18n="metaDurationLabel">总时长</span>
+              <span id="meta-duration" class="compile-meta-value">00:00</span>
+            </div>
+            <div class="compile-meta-item">
+              <span class="compile-meta-label" data-i18n="metaSizeLabel">文件大小</span>
+              <span id="meta-size" class="compile-meta-value">0.0 MB</span>
+            </div>
+            <div class="compile-meta-item">
+              <span class="compile-meta-label" data-i18n="metaFormatLabel">视频格式</span>
+              <span id="meta-format" class="compile-meta-value">WEBM</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="download-desk">
+          <div class="file-name-input-group">
+            <label for="preview-file-name" class="file-name-input-label" data-i18n="fileNameLabel">保存文件名</label>
+            <input type="text" id="preview-file-name" class="file-name-input" placeholder="请输入文件名...">
+          </div>
+
+          <div class="download-actions-row">
+            <button id="btn-download" class="btn btn-primary btn-download-act">
+              <span data-capura-icon="download"></span> <span data-i18n="btnDownload">下载到本地文件夹</span>
+            </button>
+            <button id="btn-reset-recorder" class="btn btn-secondary">
+              <span data-capura-icon="refresh"></span> <span data-i18n="btnReset">重新录制</span>
+            </button>
+          </div>
+        </div>
+
+      </div>
+
+    </div>
+  </section>
+
+  <!-- Hidden legacy checkbox middle relays to ensure 0 modification risk for app.js Audio Engine -->
+  <div style="display: none;">
+    <input type="checkbox" id="toggle-mic">
+    <input type="checkbox" id="toggle-sysaudio" checked>
+  </div>
+
+  <!-- 7. SYSTEM DIALOG OVERLAYS -->
+  <dialog class="glass-card">
+    <div class="dialog-header">
+      <h3 id="dialog-title">系统提示</h3>
+      <button id="dialog-close-btn" class="dialog-close-btn" title="关闭">
+        <span data-capura-icon="close"></span>
+      </button>
+    </div>
+    <div id="dialog-body">
+      <!-- Populated by JS -->
+    </div>
+  </dialog>
+
+  <!-- 8. ABOUT PROJECT DIALOG OVERLAY -->
+  <dialog id="about-dialog" class="glass-card about-dialog-panel">
+    <div class="dialog-header">
+      <h3 id="about-dialog-title" data-i18n="aboutTitle">✨ 关于 Capura Studio</h3>
+      <button id="about-dialog-close" class="dialog-close-btn" title="关闭">
+        <span data-capura-icon="close"></span>
+      </button>
+    </div>
+    <div class="about-dialog-content">
+      <div class="about-hero">
+        <div class="about-media-wrapper">
+          <img src="capura_hud_mockup.png" alt="Capura HUD Mockup" class="about-hud-image">
+        </div>
+        <h4 class="about-hero-title" data-i18n="aboutHeroTitle">高保真沙箱录屏工作舱</h4>
+        <p class="about-hero-desc" data-i18n="aboutHeroDesc">
+          Capura Studio 是一款专为极客、教程制作者和开发者打造的，完全在浏览器本地沙箱中运行的 4K 高标清多声道实时混音录屏系统。无需安装任何扩展或软件，数据隐私 100% 物理隔离，安全无虞。
+        </p>
+      </div>
+
+      <div class="about-features">
+        <div class="about-feature-card">
+          <span class="about-feature-icon">🎛️</span>
+          <div class="about-feature-info">
+            <h5 data-i18n="aboutFeat1Title">双声道本地混音</h5>
+            <p data-i18n="aboutFeat1Desc">智能提取浏览器扬声器与您的麦克风人声，在本地 Web Audio API 中完成声轨的亚毫秒级高保真融合与混音。</p>
+          </div>
+        </div>
+        <div class="about-feature-card">
+          <span class="about-feature-icon">💾</span>
+          <div class="about-feature-info">
+            <h5 data-i18n="aboutFeat2Title">增量灾备写入</h5>
+            <p data-i18n="aboutFeat2Desc">基于本地 IndexedDB 分块灾备，即使录制过程中突发页面关闭、死机或断电，亦可在下一次打开时完美一键挽救视频！</p>
+          </div>
+        </div>
+        <div class="about-feature-card">
+          <span class="about-feature-icon">🎥</span>
+          <div class="about-feature-info">
+            <h5 data-i18n="aboutFeat3Title">极客画质支持</h5>
+            <p data-i18n="aboutFeat3Desc">支持 4K (2160P 60fps) 极客超清至 720P 极速省空间的多档位参数动态调节与实时采集约束重构。</p>
+          </div>
+        </div>
+        <div class="about-feature-card">
+          <span class="about-feature-icon">🔒</span>
+          <div class="about-feature-info">
+            <h5 data-i18n="aboutFeat4Title">100% 本地运算</h5>
+            <p data-i18n="aboutFeat4Desc">真正的 Serverless 离线设计，零后端，零数据上传。即使断网，您依然能够自由流畅地录屏与本地编译。</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="about-action-row">
+        <button id="btn-about-close" class="btn btn-primary btn-about-close-act">
+          <span data-i18n="aboutStartBtn">开始使用</span>
+        </button>
+      </div>
+    </div>
+  </dialog>
+
+  <!-- SCRIPTS INJECTION -->
+  <script src="icons.js"></script>
+  <script src="app.js"></script>
+</body>
+
+</html>
